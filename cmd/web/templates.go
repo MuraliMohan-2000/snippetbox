@@ -1,11 +1,13 @@
 package main
 
 import (
+	"io/fs"
 	"path/filepath"
 	"text/template"
 	"time"
 
 	"snippetbox.murali.net/internal/models"
+	"snippetbox.murali.net/ui"
 )
 
 type templateData struct {
@@ -30,7 +32,9 @@ func newTemplate() (map[string]*template.Template, error) {
 
 	cache := map[string]*template.Template{}
 
-	pages, err := filepath.Glob("./ui//html/pages/*.tmpl")
+	//pages, err := filepath.Glob("./ui//html/pages/*.tmpl")
+
+	pages, err := fs.Glob(ui.Files, "html/pages/*.tmpl")
 
 	if err != nil {
 		return nil, err
@@ -40,13 +44,15 @@ func newTemplate() (map[string]*template.Template, error) {
 
 		name := filepath.Base(page)
 
-		files := []string{
-			"./ui/html/base.tmpl",
-			"./ui/html/partials/nav.tmpl",
+		patterns := []string{
+			"html/base.tmpl",
+			"html/partials/*.tmpl",
 			page,
 		}
 
-		ts, err := template.New(name).Funcs(functions).ParseFiles(files...)
+		//ts, err := template.New(name).Funcs(functions).ParseFiles(files...)
+
+		ts, err := template.New(name).Funcs(functions).ParseFS(ui.Files, patterns...)
 		if err != nil {
 			return nil, err
 		}
